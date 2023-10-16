@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "build:ui": "rm -rf dist && cd /mnt/c/Users/affon/Projects/FSO/part2/phonebook && cp -r dist ~/phonebook_backend",
+    "deploy:full": "npm build:ui && git add . && git commit -m uibuild && git push"
   },
   "author": "Andres Fontalvo",
   "license": "ISC",
@@ -15,7 +17,6 @@
     "morgan": "^1.10.0"
   },
   "devDependencies": {
-    "@flydotio/dockerfile": "^0.4.10",
     "nodemon": "^3.0.1"
   }
 }
