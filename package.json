@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "build:ui": "rm -rf dist && cd /mnt/c/Users/affon/Projects/FSO/part2/phonebook && cp -r dist ~/phonebook_backend",
+    "build:ui": "rm -rf dist && cd /mnt/c/Users/affon/Projects/FSO/part2/phonebook && npm run build && cp -r dist ~/phonebook_backend",
     "deploy:full": "npm build:ui && git add . && git commit -m uibuild && git push"
   },
   "author": "Andres Fontalvo",
