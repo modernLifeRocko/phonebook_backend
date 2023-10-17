@@ -1,23 +1,31 @@
 const mongoose = require('mongoose')
+mongoose.set('strictQuery',false)
 
-if (process.argv.length < 3){
-  console.log('input password')
-  process.exit()
-}
-
-const password = process.argv[2]
-
-const url = `mongodb+srv://mongoRocko:${password}@cluster0.vb9jy.mongodb.net/phonebookApp?retryWrites=true&w=majority`
-
-mongoose.set('strictQuery', false)
+const url = process.env.MONGODB_URI
+console.log('connecting to MongoDB')
 mongoose.connect(url)
+  .then( result => {
+    console.log('connected to MongoDB')
+  })
+  .catch( error => {
+    console.log('error connecting to MongoDB: ',error.message)
+  })
 
 const contactSchema = new mongoose.Schema({
   name: String,
   number: String,
 })
-const Contact = mongoose.model('Contact', contactSchema)
 
+contactSchema.set('toJSON',{
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString()
+    delete returnedObject._id
+    delete returnedObject.__v
+  }
+} )
+
+module.exports = mongoose.model('Contact', contactSchema)
+/*
 if (process.argv.length >= 5){
   const contact = new Contact({
     name: process.argv[3],
@@ -36,3 +44,4 @@ if (process.argv.length >= 5){
     mongoose.connection.close()
   })
 }
+*/
