@@ -77,12 +77,10 @@ app.post('/api/persons', (request, response,next)=>{
     .catch(error => next(error))
 })
 app.put('/api/persons/:id', (request, response,next) => {
-  const body = request.body
-  const contact = {
-    name: body.name,
-    number: body.number,
-  }
-  Contact.findByIdAndUpdate(request.params.id, contact,{new: true})
+  const {name, number}= request.body
+  Contact.findByIdAndUpdate(request.params.id,
+    {name, number},
+    {new: true, runValidators: true,context: 'query'})
     .then( updatedContact => {
       response.json(updatedContact)
     })
