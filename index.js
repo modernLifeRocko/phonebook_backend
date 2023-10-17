@@ -10,6 +10,16 @@ app.use(morgan('tiny',{skip: (req, res)=> req.method === 'POST'}))
 morgan.token('body', (req, res) => JSON.stringify(req.body) ) 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body', {skip: (req, res)=> req.method !== 'POST'}))
 
+const errorHandler = (error, req, res, next) => {
+  console.error(error.message)
+  if (error.name === "CastError") {
+    return res.status(400).send({error: 'malformatted id'})
+  }
+  next(error)
+}
+const unknownEndpoint = (req, res) => {
+  res.status(404).send({error: "unknown endpoint" })
+}
 app.get('/api/persons', (request, response) =>{
   Contact.find({})
     .then( contacts => {
@@ -20,22 +30,28 @@ app.get('/api/persons', (request, response) =>{
 app.get('/info', (request, response)=>{
   const reqTime = new Date(Date.now())
   Contact.find({}).then(phonebook =>{
-  response.send(`Phonebook has info for ${phonebook.length} people<br/>${reqTime}`
+    response.send(`Phonebook has info for ${phonebook.length} people<br/>${reqTime}`
   )
   })
 })
 
 app.get('/api/persons/:id', (request, response)=>{
- Contact.findById(request.params.id).then(note=> {
-  response.json(note)
+ Contact.findById(request.params.id).then(contact=> {
+  if (contact) {
+    response.json(contact)
+  } else {
+    response.status(404).end()
+  }
  })
+ .catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (request, response)=>{
-  const id = Number(request.params.id)
-  phonebook = phonebook.filter(contact => contact.id !== id)
-
-  response.status(204).end()
+app.delete('/api/persons/:id', (request, response,next)=>{
+  Contact.findByIdAndRemove(request.params.id)
+    .then(result => {
+       response.status(204).end()
+    })
+    .catch(error => next(error))
 })
 
 app.post('/api/persons', (request, response)=>{
@@ -56,7 +72,21 @@ app.post('/api/persons', (request, response)=>{
     response.json(savedContact)
   })
 })
+app.put('/api/persons/:id', (request, response,next) => {
+  const body = request.body
+  const contact = {
+    name: body.name,
+    number: body.number,
+  }
+  Contact.findByIdAndUpdate(request.params.id, contact,{new: true})
+    .then( updatedContact => {
+      response.json(updatedContact)
+    })
+    .catch(error => next(error))
+})
 
+app.use(unknownEndpoint)
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () =>{
