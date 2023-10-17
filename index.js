@@ -14,6 +14,8 @@ const errorHandler = (error, req, res, next) => {
   console.error(error.message)
   if (error.name === "CastError") {
     return res.status(400).send({error: 'malformatted id'})
+  } else if (error.name === "ValidationError") {
+    return res.status(400).json({error: error.message})
   }
   next(error)
 }
@@ -54,7 +56,7 @@ app.delete('/api/persons/:id', (request, response,next)=>{
     .catch(error => next(error))
 })
 
-app.post('/api/persons', (request, response)=>{
+app.post('/api/persons', (request, response,next)=>{
   const body = request.body
   if (!body.name || !body.number){
     return response.status(400).json({error: 'contact info missing'})
@@ -68,9 +70,11 @@ app.post('/api/persons', (request, response)=>{
     name: body.name,
     number: body.number,
   })
-  contact.save().then( savedContact => {
+  contact.save()
+    .then( savedContact => {
     response.json(savedContact)
   })
+    .catch(error => next(error))
 })
 app.put('/api/persons/:id', (request, response,next) => {
   const body = request.body
